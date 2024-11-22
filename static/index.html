@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatterbox</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/octicons/8.5.0/build.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span class="server-name">Chatterbox</span>
+            </div>
+
+            <div class="channel-section">
+                <div class="section-header">
+                    <span>Servers</span>
+                </div>
+                <div class="channel-list" id="server-list">
+                </div>
+            </div>
+
+            <div class="channel-section">
+                <div class="section-header">
+                    <span>Channels</span>
+                </div>
+                <div class="channel-list" id="channel-list">
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="chat-header">
+                <div class="chat-header-title">
+                    <span>#</span>
+                    <span id="current-channel">general</span>
+                </div>
+            </header>
+
+            <div class="chat-messages" id="messages">
+            </div>
+
+            <div class="chat-input">
+                <div class="input-container">
+                    <textarea
+                        class="message-input"
+                        placeholder="Type a message... (Press Enter to send)"
+                        id="message-input"
+                    ></textarea>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

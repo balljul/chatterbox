@@ -1,28 +1,42 @@
 const express = require('express');
 const router = express.Router();
-const { messages } = require('../data/messages');
+const db = require('../db');
 
-router.get('/server/:serverId/channel/:channelId/message', (req, res) => {
-    const { serverId, channelId } = req.params;
-    const count = parseInt(req.query.count) || 100;
-
-    const channelMessages = Object.values(messages.messages)
-        .filter(msg => msg.channelId === channelId && msg.serverId === serverId)
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-        .slice(0, count);
-
-    res.json({ messages: channelMessages });
+router.get('/channel/:channelId', (req, res) => {
+    try {
+        const messages = db.getMessages(req.params.channelId);
+        res.json({ messages });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-router.get('/server/:serverId/channel/:channelId/message/:messageId', (req, res) => {
-    const { messageId } = req.params;
-    const message = messages.messages[messageId];
+router.post('/channel/:channelId', (req, res) => {
+    try {
+        const { user_id, message } = req.body;
+        const channel_id = req.params.channelId;
+        
+        if (!user_id || !message) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
 
-    if (!message) {
-        return res.status(404).json({ error: 'Message not found' });
+        const result = db.createMessage({
+            timestamp: Date.now() / 1000,
+            user_id,
+            channel_id,
+            message
+        });
+
+        res.status(201).json({
+            id: result.lastInsertRowid,
+            timestamp: Date.now() / 1000,
+            user_id,
+            channel_id,
+            message
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    res.json(message);
 });
 
 module.exports = router;

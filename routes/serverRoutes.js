@@ -1,38 +1,75 @@
 const express = require('express');
 const router = express.Router();
-const { servers } = require('../data/servers');
+const db = require('../db');
 
 router.get('/', (req, res) => {
-    res.json({ serverIds: Object.keys(servers.servers) });
+    try {
+        const servers = db.getServers();
+        res.json({ servers });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-router.get('/:serverId', (req, res) => {
-    const server = servers.servers[req.params.serverId];
-    if (!server) {
-        return res.status(404).json({ error: 'Server not found' });
+router.post('/', (req, res) => {
+    try {
+        const { name, description, admin_user_id } = req.body;
+        if (!name || !admin_user_id) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const result = db.createServer({
+            name,
+            description,
+            admin_user_id
+        });
+
+        res.status(201).json({ 
+            id: result.lastInsertRowid,
+            name,
+            description,
+            admin_user_id
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-    const { channels, ...serverInfo } = server;
-    res.json(serverInfo);
 });
 
-router.get('/:serverId/channel', (req, res) => {
-    const server = servers.servers[req.params.serverId];
-    if (!server) {
-        return res.status(404).json({ error: 'Server not found' });
+router.get('/:serverId/channels', (req, res) => {
+    try {
+        const channels = db.getChannels(req.params.serverId);
+        res.json({ channels });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-    res.json({ channelIds: Object.keys(server.channels) });
 });
 
-router.get('/:serverId/channel/:channelId', (req, res) => {
-    const server = servers.servers[req.params.serverId];
-    if (!server) {
-        return res.status(404).json({ error: 'Server not found' });
+router.post('/:serverId/channels', (req, res) => {
+    try {
+        const { name, description, moderator_user_id } = req.body;
+        const server_id = req.params.serverId;
+
+        if (!name || !moderator_user_id) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const result = db.createChannel({
+            name,
+            description,
+            moderator_user_id,
+            server_id
+        });
+
+        res.status(201).json({
+            id: result.lastInsertRowid,
+            name,
+            description,
+            moderator_user_id,
+            server_id
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-    const channel = server.channels[req.params.channelId];
-    if (!channel) {
-        return res.status(404).json({ error: 'Channel not found' });
-    }
-    res.json(channel);
 });
 
 module.exports = router;

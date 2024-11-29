@@ -1,17 +1,45 @@
 const express = require('express');
 const router = express.Router();
-const { users } = require('../data/users');
+const db = require('../db');
 
 router.get('/', (req, res) => {
-    res.json({ userIds: Object.keys(users.users) });
+    try {
+        const users = db.getUsers();
+        res.json({ users });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-router.get('/:userId', (req, res) => {
-    const user = users.users[req.params.userId];
-    if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+router.post('/', (req, res) => {
+    try {
+        const { login, firstName, lastName, email, password } = req.body;
+        if (!login || !firstName || !lastName || !email || !password) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const result = db.createUser({
+            login,
+            firstName,
+            lastName,
+            email,
+            password
+        });
+
+        res.status(201).json({ 
+            id: result.lastInsertRowid,
+            login,
+            firstName,
+            lastName,
+            email
+        });
+    } catch (error) {
+        if (error.code === 'SQLITE_CONSTRAINT') {
+            res.status(409).json({ error: 'User already exists' });
+        } else {
+            res.status(500).json({ error: error.message });
+        }
     }
-    res.json(user);
 });
 
 module.exports = router;

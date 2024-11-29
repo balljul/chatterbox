@@ -1,26 +1,26 @@
 const express = require('express');
-const cors = require('cors');
 const path = require('path');
-
-const app = express();
-const PORT = 3000;
-
-app.use(cors());
-app.use(express.json());
-app.use(express.static('static'));
 
 const userRoutes = require('./routes/userRoutes');
 const serverRoutes = require('./routes/serverRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 
-app.use('/user', userRoutes);
-app.use('/server', serverRoutes);
-app.use('/', messageRoutes);
+const app = express();
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'static', 'index.html'));
+app.use(express.json());
+
+app.use(express.static(path.join(__dirname, 'static')));
+
+app.use('/api/users', userRoutes);
+app.use('/api/servers', serverRoutes);
+app.use('/api/messages', messageRoutes);
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something went wrong!' });
 });
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
